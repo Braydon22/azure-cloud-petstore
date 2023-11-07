@@ -4,9 +4,12 @@
 package com.chtrembl.petstoreassistant;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -18,6 +21,7 @@ import com.chtrembl.petstoreassistant.service.IAzurePetStore;
 import com.chtrembl.petstoreassistant.service.AzureOpenAI.Classification;
 import com.chtrembl.petstoreassistant.utility.PetStoreAssistantUtilities;
 import com.codepoetics.protonpack.collectors.CompletableFutures;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.bot.builder.ActivityHandler;
 import com.microsoft.bot.builder.MessageFactory;
 import com.microsoft.bot.builder.TurnContext;
@@ -38,7 +42,8 @@ import com.microsoft.bot.schema.ChannelAccount;
 @Component
 @Primary
 public class PetStoreAssistantBot extends ActivityHandler {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(PetStoreAssistantBot.class);
+
     @Autowired
     private IAzureOpenAI azureOpenAI;
    
@@ -48,6 +53,8 @@ public class PetStoreAssistantBot extends ActivityHandler {
     @Override
     protected CompletableFuture<Void> onMessageActivity(TurnContext turnContext) {
         String text = turnContext.getActivity().getText().toLowerCase();
+
+        this.logTurnContext(turnContext);
         
         // strip out session id and csrf token
         AzurePetStoreSessionInfo azurePetStoreSessionInfo = PetStoreAssistantUtilities.getAzurePetStoreSessionInfo(text);
@@ -94,6 +101,10 @@ public class PetStoreAssistantBot extends ActivityHandler {
     protected CompletableFuture<Void> onMembersAdded(
             List<ChannelAccount> membersAdded,
             TurnContext turnContext) {
+
+                logTurnContext(turnContext);
+
+
         return membersAdded.stream()
                 .filter(
                         member -> !StringUtils
@@ -103,4 +114,20 @@ public class PetStoreAssistantBot extends ActivityHandler {
                                 MessageFactory.text("Hello and welcome to the Azure Pet Store, you can ask me questions about our products, your shopping cart and your order, you can also ask me for information about pet animals. How can I help you?")))
                 .collect(CompletableFutures.toFutureList()).thenApply(resourceResponses -> null);
     }
+
+    private void logTurnContext(TurnContext turnContext)
+    {
+
+         try
+        {
+            LOGGER.info("trying to get recipient");
+            Map<String, JsonNode> recipientProperties = turnContext.getActivity().getRecipient().getProperties();
+            recipientProperties.forEach((key, value) -> LOGGER.info("key: " + key + " value: " + value.asText()));
+        }
+        catch(Exception e)
+        {
+            LOGGER.info("could not get recipient " + e.getMessage());
+        }
+    }
+       
 }
