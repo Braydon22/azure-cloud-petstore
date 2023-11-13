@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: braydonazurecloudpetstore 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: braydonazurecloudpetstore
+  template:
+    metadata:
+      labels:
+        app: braydonazurecloudpetstore 
+    spec:
+      containers:
+        - name: braydonazurecloudpetstore 
+          image: bcazurepetstorecr.azurecr.io/braydonazurecloudpetstore
+          ports:
+          - containerPort: 80

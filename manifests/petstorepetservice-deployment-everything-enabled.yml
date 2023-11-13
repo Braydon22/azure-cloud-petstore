@@ -14,10 +14,10 @@ spec:
     spec:
       nodeSelector:
         "kubernetes.io/os": linux
-        agentpool: nodepool1
+        agentpool: agentpool
       containers:
       - name: petstoreservice
-        image: azurepetstorecontainerregistry.azurecr.io/petstorepetservice:latest
+        image: bcazurepetstorecr.azurecr.io/petstorepetservice:latest
         resources:
           requests:
             cpu: 250m
@@ -32,7 +32,7 @@ spec:
             value: "80"
           - name: spring.config.name
             value: application_with_everything_enabled
-          - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          - name: PETSTORESERVICES_AI_INSTRUMENTATION_KEY
             valueFrom:
               secretKeyRef:
                 name: aisecretkey
